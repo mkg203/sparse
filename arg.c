@@ -7,6 +7,7 @@
 #define MAX_ARG_STRING_LEN 1024
 
 typedef enum {
+  DEFAULT,
   ARG_TYPE_STRING,
   ARG_TYPE_INT,
   ARG_TYPE_BOOL,
@@ -38,6 +39,13 @@ Arg* arg_create(char* name) {
   return arg;
 }
 
+void arg_set_type(Arg* arg, ArgType type) {
+  if (arg == NULL) {
+    return;
+  }
+  arg->type = type;
+}
+
 void arg_init_int(Arg* arg, int64_t value) {
   arg->type = ARG_TYPE_INT;
   arg->value.i = value;
@@ -64,6 +72,35 @@ void arg_init_string(Arg* arg, char* value) {
   arg->value.s = copy;
 }
 
+int arg_set_value(Arg* arg, void* value) {
+  if (arg == NULL || value == NULL) {
+    return -1;
+  }
+
+  switch (arg->type) {
+  default: {
+    return -1;
+  }
+  case ARG_TYPE_STRING: {
+    arg_init_string(arg, (char*)value);
+    break;
+  }
+  case ARG_TYPE_INT: {
+    arg_init_int(arg, *(int*)value);
+    break;
+  }
+  case ARG_TYPE_FLOAT: {
+    arg_init_float(arg, *(double*)value);
+    break;
+  }
+  case ARG_TYPE_BOOL: {
+    arg_init_bool(arg, *(bool*)value);
+    break;
+  }
+  }
+  return 1;
+}
+
 void arg_del(Arg* arg) {
   if (arg == NULL) {
     return;
@@ -73,7 +110,7 @@ void arg_del(Arg* arg) {
   }
   if (arg->name != NULL) {
     free(arg->name);
-  } 
+  }
   // printf("test: %s\n", arg->value.s);
   // printf("test: %s\n", arg->name);
   free(arg);
@@ -84,7 +121,7 @@ void print_arg(Arg* arg) {
   if (arg == NULL) {
     return;
   }
-  
+
   printf("name: %s\n", arg->name);
   printf("type: %u\n", arg->type);
   switch (arg->type) {
