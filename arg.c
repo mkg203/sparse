@@ -39,6 +39,28 @@ Arg* arg_create(char* name) {
   return arg;
 }
 
+char* arg_get_name(Arg* arg) {
+  if (arg == NULL) {
+    return NULL;
+  }
+  return arg->name;
+}
+
+void* arg_get_value(Arg* arg) {
+  switch (arg->type) {
+  case ARG_TYPE_BOOL:
+    return &arg->value.b;
+  case ARG_TYPE_INT:
+    return &arg->value.i;
+  case ARG_TYPE_STRING:
+    return arg->value.s;
+  case ARG_TYPE_FLOAT:
+    return &arg->value.f;
+  default:
+    return NULL;
+  }
+}
+
 void arg_set_type(Arg* arg, ArgType type) {
   if (arg == NULL) {
     return;
@@ -72,33 +94,33 @@ void arg_init_string(Arg* arg, char* value) {
   arg->value.s = copy;
 }
 
-int arg_set_value(Arg* arg, void* value) {
+int arg_set_value(Arg* arg, char* value) {
   if (arg == NULL || value == NULL) {
-    return -1;
+    return 1;
   }
 
   switch (arg->type) {
   default: {
-    return -1;
+    return 1;
   }
   case ARG_TYPE_STRING: {
     arg_init_string(arg, (char*)value);
     break;
   }
   case ARG_TYPE_INT: {
-    arg_init_int(arg, *(int*)value);
+    arg_init_int(arg, atoi(value));
     break;
   }
   case ARG_TYPE_FLOAT: {
-    arg_init_float(arg, *(double*)value);
+    arg_init_float(arg, atof(value));
     break;
   }
   case ARG_TYPE_BOOL: {
-    arg_init_bool(arg, *(bool*)value);
+    arg_init_bool(arg, atoi(value));
     break;
   }
   }
-  return 1;
+  return 0;
 }
 
 void arg_del(Arg* arg) {
@@ -122,26 +144,28 @@ void print_arg(Arg* arg) {
     return;
   }
 
-  printf("name: %s\n", arg->name);
-  printf("type: %u\n", arg->type);
+  printf("Arg {\n");
+  printf("  name: %s\n", arg->name);
+  printf("  type: %u\n", arg->type);
   switch (arg->type) {
   case ARG_TYPE_STRING: {
-    printf("value: %s\n", arg->value.s);
+    printf("  value: %s\n", arg->value.s);
     break;
   }
   case ARG_TYPE_INT: {
-    printf("value: %ld\n", arg->value.i);
+    printf("  value: %ld\n", arg->value.i);
     break;
   }
   case ARG_TYPE_FLOAT: {
-    printf("value: %lf\n", arg->value.f);
+    printf("  value: %lf\n", arg->value.f);
     break;
   }
   case ARG_TYPE_BOOL: {
-    printf("value: %b\n", arg->value.b);
+    printf("  value: %b\n", arg->value.b);
     break;
   }
   default: {
   }
   }
+  printf("}\n");
 }
