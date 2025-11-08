@@ -1,12 +1,15 @@
-#include "arg.c"
+#include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "handler.h"
 
-typedef struct ArgList {
+struct ArgList {
   uint id;
   Arg* arg;
   bool required;
   struct ArgList* next;
-} ArgList;
+};
 
 ArgList* arglist_create() {
   ArgList* arglist = calloc(1, sizeof(ArgList));

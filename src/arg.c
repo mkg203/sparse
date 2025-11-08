@@ -3,18 +3,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "arg.h"
 
 #define MAX_ARG_STRING_LEN 1024
 
-typedef enum {
-  DEFAULT,
-  ARG_TYPE_STRING,
-  ARG_TYPE_INT,
-  ARG_TYPE_BOOL,
-  ARG_TYPE_FLOAT,
-} ArgType;
-
-typedef struct {
+struct Arg {
   char* name;
   ArgType type;
   union {
@@ -24,7 +17,7 @@ typedef struct {
     double f;
     void* p;
   } value;
-} Arg;
+};
 
 Arg* arg_create(char* name) {
   Arg* arg = calloc(1, sizeof(Arg));

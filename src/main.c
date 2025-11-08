@@ -1,4 +1,7 @@
-#include "handler.c"
+#include <stdbool.h>
+#include "handler.h"
+#include "types.h"
+#include <stdio.h>
 
 int main(int argc, char* argv[]) {
   ArgList* args = arglist_create();
