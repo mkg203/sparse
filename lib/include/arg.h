@@ -10,9 +10,9 @@
 
 typedef struct Arg Arg;
 
-Arg* arg_create(char* name);
+Arg* arg_create(const char* name);
 
-char* arg_get_name(Arg* arg); 
+const char* arg_get_name(Arg* arg); 
 
 void* arg_get_value(Arg* arg);
 
@@ -24,9 +24,9 @@ void arg_init_bool(Arg* arg, bool value);
 
 void arg_init_float(Arg* arg, double value);
 
-void arg_init_string(Arg* arg, char* value);
+void arg_init_string(Arg* arg, const char* value);
 
-int arg_set_value(Arg* arg, char* value);
+int arg_set_value(Arg* arg, const char* value);
 
 void arg_del(Arg* arg);
 

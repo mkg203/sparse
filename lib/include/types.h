@@ -2,7 +2,7 @@
 #define TYPES_H
 
 typedef enum {
-  DEFAULT,
+  ARG_TYPE_DEFAULT,
   ARG_TYPE_STRING,
   ARG_TYPE_INT,
   ARG_TYPE_BOOL,

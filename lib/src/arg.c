@@ -19,7 +19,7 @@ struct Arg {
   } value;
 };
 
-Arg* arg_create(char* name) {
+Arg* arg_create(const char* name) {
   Arg* arg = calloc(1, sizeof(Arg));
 
   size_t len = strnlen(name, MAX_ARG_STRING_LEN);
@@ -32,7 +32,7 @@ Arg* arg_create(char* name) {
   return arg;
 }
 
-char* arg_get_name(Arg* arg) {
+const char* arg_get_name(Arg* arg) {
   if (arg == NULL) {
     return NULL;
   }
@@ -76,7 +76,7 @@ void arg_init_float(Arg* arg, double value) {
   arg->value.f = value;
 }
 
-void arg_init_string(Arg* arg, char* value) {
+void arg_init_string(Arg* arg, const char* value) {
   arg->type = ARG_TYPE_STRING;
 
   size_t len = strnlen(value, MAX_ARG_STRING_LEN);
@@ -87,7 +87,7 @@ void arg_init_string(Arg* arg, char* value) {
   arg->value.s = copy;
 }
 
-int arg_set_value(Arg* arg, char* value) {
+int arg_set_value(Arg* arg, const char* value) {
   if (arg == NULL || value == NULL) {
     return 1;
   }
@@ -96,8 +96,8 @@ int arg_set_value(Arg* arg, char* value) {
   default: {
     return 1;
   }
-  case ARG_TYPE_STRING: {
-    arg_init_string(arg, (char*)value);
+  case ARG_TYPE_STRING | ARG_TYPE_DEFAULT: {
+    arg_init_string(arg, (const char*)value);
     break;
   }
   case ARG_TYPE_INT: {

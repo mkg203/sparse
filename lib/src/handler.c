@@ -17,7 +17,7 @@ ArgList* arglist_create() {
   return arglist;
 }
 
-ArgList* arglist_add_arg(ArgList* arglist, char* name, bool required,
+ArgList* arglist_add_arg(ArgList* arglist, const char* name, bool required,
                          ArgType type) {
   arglist->next = arglist_create();
   arglist->required = required;
@@ -30,7 +30,7 @@ ArgList* arglist_add_arg(ArgList* arglist, char* name, bool required,
   return arglist->next;
 }
 
-ArgList* arglist_add_int(ArgList* arglist, char* name, bool required,
+ArgList* arglist_add_int(ArgList* arglist, const char* name, bool required,
                          int value) {
   arglist->next = arglist_create();
   arglist->required = required;
@@ -44,8 +44,8 @@ ArgList* arglist_add_int(ArgList* arglist, char* name, bool required,
   return arglist->next;
 }
 
-ArgList* arglist_add_string(ArgList* arglist, char* name, bool required,
-                            char* value) {
+ArgList* arglist_add_string(ArgList* arglist, const char* name, bool required,
+                            const char* value) {
   arglist->next = arglist_create();
   arglist->required = required;
 
@@ -58,7 +58,7 @@ ArgList* arglist_add_string(ArgList* arglist, char* name, bool required,
   return arglist->next;
 }
 
-ArgList* arglist_add_float(ArgList* arglist, char* name, bool required,
+ArgList* arglist_add_float(ArgList* arglist, const char* name, bool required,
                            float value) {
   arglist->next = arglist_create();
   arglist->required = required;
@@ -103,7 +103,7 @@ int arglist_count(ArgList* arglist) {
 }
 
 int arglist_update_arg(Arg* arg, char* argv[], int argc) {
-  char* name = NULL;
+  const char* name = NULL;
   if (!(name = arg_get_name(arg))) {
     fprintf(stderr, "Error getting argument name from ArgList");
     return 1;
@@ -125,7 +125,7 @@ int arglist_update_arg(Arg* arg, char* argv[], int argc) {
     argname[len] = '\0';
 
     if (strncasecmp(name, argname, MAX_ARG_STRING_LEN) == 0) {
-      char* value = (i + 1 < argc) ? argv[i + 1] : NULL;
+      const char* value = (i + 1 < argc) ? argv[i + 1] : NULL;
       return arg_set_value(arg, value);
     }
   }
@@ -146,14 +146,14 @@ void arglist_parse(ArgList* arglist, char* argv[], int argc) {
 /**
  * Casting:
  * `int x = *(int*) arglist_get(arglist, "foo");`
- * `char* s = (char*) arglist_get(arglist, "bar");`
+ * `const char* s = (char*) arglist_get(arglist, "bar");`
  *
  * Returns:
  *   A `void*` pointer to the arg value or `NULL`.
  */
-void* arglist_get(ArgList* arglist, char* name) {
+void* arglist_get(ArgList* arglist, const char* name) {
   while (arglist->next != NULL) {
-    char* argname = NULL;
+    const char* argname = NULL;
     if (!(argname = arg_get_name(arglist->arg))) {
       fprintf(stderr, "Error getting argument name from ArgList");
       continue;
