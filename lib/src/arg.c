@@ -54,6 +54,14 @@ void* arg_get_value(Arg* arg) {
   }
 }
 
+ArgType arg_get_type(Arg* arg) {
+  if (arg == NULL) {
+    return ARG_TYPE_DEFAULT;
+  };
+
+  return arg->type;
+}
+
 void arg_set_type(Arg* arg, ArgType type) {
   if (arg == NULL) {
     return;

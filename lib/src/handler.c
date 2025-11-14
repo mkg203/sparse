@@ -1,8 +1,9 @@
+#include "handler.h"
+#include "arg.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "handler.h"
 
 struct ArgList {
   uint id;
@@ -70,6 +71,20 @@ ArgList* arglist_add_float(ArgList* arglist, const char* name, bool required,
   arglist->arg = arg;
 
   return arglist->next;
+}
+
+ArgList* arglist_get_next(ArgList* arglist) {
+  if (arglist == NULL) {
+    return NULL;
+  }
+  return arglist->next;
+}
+
+Arg* arglist_get_arg(ArgList* arglist) {
+  if (arglist == NULL) {
+    return NULL;
+  }
+  return arglist->arg;
 }
 
 void arglist_del(ArgList* head) {
@@ -165,6 +180,6 @@ void* arglist_get(ArgList* arglist, const char* name) {
 
     arglist = arglist->next;
   }
-  
+
   return NULL;
 }

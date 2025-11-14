@@ -16,6 +16,10 @@ ArgList* arglist_add_string(ArgList*, const char*, bool, const char*);
 
 ArgList* arglist_add_float(ArgList*, const char*, bool, float);
 
+ArgList* arglist_get_next(ArgList*);
+
+Arg* arglist_get_arg(ArgList*);
+
 void arglist_del(ArgList*);
 
 void print_args(ArgList*);

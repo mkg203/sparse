@@ -16,6 +16,8 @@ const char* arg_get_name(Arg* arg);
 
 void* arg_get_value(Arg* arg);
 
+ArgType arg_get_type(Arg* arg);
+
 void arg_set_type(Arg* arg, ArgType type);
 
 void arg_init_int(Arg* arg, int64_t value);
