@@ -1,16 +1,20 @@
 from setuptools import setup, Extension
 import os
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+LIB_DIR = os.path.join(BASE_DIR, "..", "lib")
+
 module = Extension(
     "sparse",
-    sources=["src/wrapper.c", "../lib/src/handler.c", "../lib/src/arg.c"],
-    include_dirs=[
-        os.path.join("../lib/include")
+    sources=[
+        "src/wrapper.c",
+        os.path.join(LIB_DIR, "src", "handler.c"),
+        os.path.join(LIB_DIR, "src", "arg.c"),
     ],
+    include_dirs=[
+        os.path.join(LIB_DIR, "include"),
+    ],
+    extra_compile_args=["-Wall", "-O2"],
 )
 
-setup(
-    name="sparse",
-    version="0.1.0",
-    ext_modules=[module],
-)
+setup(ext_modules=[module])

@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "arg.h"
+#include "types.h"
 
 #define MAX_ARG_STRING_LEN 1024
 
@@ -104,7 +105,8 @@ int arg_set_value(Arg* arg, const char* value) {
   default: {
     return 1;
   }
-  case ARG_TYPE_STRING | ARG_TYPE_DEFAULT: {
+  case ARG_TYPE_DEFAULT: {}
+  case ARG_TYPE_STRING: {
     arg_init_string(arg, (const char*)value);
     break;
   }
@@ -149,6 +151,7 @@ void print_arg(Arg* arg) {
   printf("  name: %s\n", arg->name);
   printf("  type: %u\n", arg->type);
   switch (arg->type) {
+  case ARG_TYPE_DEFAULT: {}
   case ARG_TYPE_STRING: {
     printf("  value: %s\n", arg->value.s);
     break;

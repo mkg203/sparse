@@ -6,7 +6,11 @@
 typedef struct {
   PyObject_HEAD ArgList* arglist;
   ArgList* tail;
+  uint arr_len;
+  const char** args_array;
 } PyArgListObject;
+
+static PyObject* SparseError = NULL;
 
 PyObject* pyarglist_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
   PyArgListObject* self;
@@ -42,10 +46,23 @@ ArgType get_argtype(const char* pytype) {
   return type;
 }
 
-void pyarglist_dealloc(PyArgListObject* self) {
+void cleanup(PyArgListObject* self) {
   if (self->arglist != NULL) {
     arglist_del(self->arglist);
   }
+
+  if (self->args_array != NULL) {
+    for (int i = 0; i < self->arr_len; i++) {
+      if (self->args_array[i] != NULL) {
+        free((void*)self->args_array[i]);
+      }
+    }
+    free(self->args_array);
+  }
+}
+
+void pyarglist_dealloc(PyArgListObject* self) {
+  cleanup(self);
   Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
@@ -57,6 +74,8 @@ PyObject* pyarglist_add_arg(PyArgListObject* self, PyObject* args) {
   const char* pyname;
 
   if (!PyArg_ParseTuple(args, "s|sb", &pyname, &pytype, &pyrequired)) {
+    cleanup(self);
+    PyErr_SetString(SparseError, "Error in parsing arguments");
     return NULL;
   }
 
@@ -69,8 +88,54 @@ PyObject* pyarglist_add_arg(PyArgListObject* self, PyObject* args) {
   return Py_None;
 }
 
+PyObject* pyarglist_parse(PyArgListObject* self, PyObject* args) {
+  PyObject* string_list;
+
+  if (!PyArg_ParseTuple(args, "O", &string_list)) {
+    cleanup(self);
+    PyErr_SetString(SparseError, "Error in parsing arguments");
+    return NULL;
+  }
+
+  if (!PyList_Check(string_list)) {
+    cleanup(self);
+    PyErr_SetString(PyExc_TypeError, "Argument not of type `List`");
+    return NULL;
+  }
+
+  int len = PyObject_Length(string_list);
+  if (len < 0) {
+    cleanup(self);
+    PyErr_SetString(PyExc_Exception, "List length less than 0??");
+    return NULL;
+  }
+  self->arr_len = len;
+
+  self->args_array = (const char**)calloc(len, sizeof(char**));
+
+  for (int i = 0; i < len; i++) {
+    PyObject* item = PyList_GET_ITEM(string_list, i);
+    if (!PyUnicode_Check(item)) {
+      cleanup(self);
+      PyErr_SetString(PyExc_TypeError, "Argument not of type `String`");
+      return NULL;
+    }
+    const char* str = PyUnicode_AsUTF8(item);
+    self->args_array[i] = strndup(str, MAX_ARG_STRING_LEN);
+
+    // PyObject_Print(item, stdout, Py_PRINT_RAW);
+
+    // printf("array element: %s\n", self->args_array[i]);
+  }
+
+  arglist_parse(self->arglist, self->args_array, len);
+
+  return Py_None;
+}
+
 PyObject* pyarglist_arg_wrapper(Arg* arg) {
   void* value = arg_get_value(arg);
+  // printf("value: %s\n", (char*) value);
   if (value == NULL) {
     return Py_None;
   }
@@ -101,44 +166,40 @@ PyObject* pyarglist_get_dict(PyArgListObject* self) {
 
     PyObject* key = PyUnicode_FromString(arg_get_name(arg));
     PyObject* value = pyarglist_arg_wrapper(arg);
+    // PyObject_Print(key, stdout, Py_PRINT_RAW);
+    // PyObject_Print(value, stdout, Py_PRINT_RAW);
 
     PyDict_SetItem(dict, key, value);
-    Py_DECREF(key);
-    Py_DECREF(value);
-    
+    // Py_DECREF(key);
+    // Py_DECREF(value);
+
     arglist = arglist_get_next(arglist);
   }
 
   return dict;
 }
 
-
 static PyMethodDef PyArgList_methods[] = {
-    {"add_argument",
-     (PyCFunction)pyarglist_add_arg,
-     METH_VARARGS,
+    {"add_argument", (PyCFunction)pyarglist_add_arg, METH_VARARGS,
      "Add an argument to the list."},
 
-    {"to_dict",
-     (PyCFunction)pyarglist_get_dict,
-     METH_NOARGS,
+    {"to_dict", (PyCFunction)pyarglist_get_dict, METH_NOARGS,
      "Return all arguments as a Python dict."},
 
-    {NULL}
-};
+    {"parse", (PyCFunction)pyarglist_parse, METH_VARARGS,
+     "Parse the arguments from a list"},
 
+    {NULL}};
 
 static PyTypeObject PyArgListType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "arglist.ArgList",
+    PyVarObject_HEAD_INIT(NULL, 0).tp_name = "sparse.Sparse",
     .tp_basicsize = sizeof(PyArgListObject),
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_new = pyarglist_new,
-    .tp_init = (initproc) pyarglist_init,
-    .tp_dealloc = (destructor) pyarglist_dealloc,
+    .tp_init = (initproc)pyarglist_init,
+    .tp_dealloc = (destructor)pyarglist_dealloc,
     .tp_methods = PyArgList_methods,
 };
-
 
 static PyModuleDef sparsemodule = {
     PyModuleDef_HEAD_INIT,
@@ -147,20 +208,21 @@ static PyModuleDef sparsemodule = {
 };
 
 PyMODINIT_FUNC PyInit_sparse(void) {
-    PyObject* m;
+  PyObject* m;
 
-    if (PyType_Ready(&PyArgListType) < 0)
-        return NULL;
+  if (PyType_Ready(&PyArgListType) < 0)
+    return NULL;
 
-    m = PyModule_Create(&sparsemodule);
-    if (!m) return NULL;
+  m = PyModule_Create(&sparsemodule);
+  if (!m)
+    return NULL;
 
-    Py_INCREF(&PyArgListType);
-    if (PyModule_AddObject(m, "ArgList", (PyObject*)&PyArgListType) < 0) {
-        Py_DECREF(&PyArgListType);
-        Py_DECREF(m);
-        return NULL;
-    }
+  Py_INCREF(&PyArgListType);
+  if (PyModule_AddObject(m, "Sparse", (PyObject*)&PyArgListType) < 0) {
+    Py_DECREF(&PyArgListType);
+    Py_DECREF(m);
+    return NULL;
+  }
 
-    return m;
+  return m;
 }

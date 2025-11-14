@@ -117,7 +117,7 @@ int arglist_count(ArgList* arglist) {
   return count;
 }
 
-int arglist_update_arg(Arg* arg, char* argv[], int argc) {
+int arglist_update_arg(Arg* arg, const char* argv[], int argc) {
   const char* name = NULL;
   if (!(name = arg_get_name(arg))) {
     fprintf(stderr, "Error getting argument name from ArgList");
@@ -128,7 +128,8 @@ int arglist_update_arg(Arg* arg, char* argv[], int argc) {
       continue;
     }
 
-    char* temp = argv[i];
+    // printf("handler.c: printing argv[i]: %s for argname %s\n", argv[i], name);
+    const char* temp = argv[i]; 
     int len = strnlen(name, MAX_ARG_STRING_LEN);
 
     if (len <= 1) {
@@ -141,13 +142,14 @@ int arglist_update_arg(Arg* arg, char* argv[], int argc) {
 
     if (strncasecmp(name, argname, MAX_ARG_STRING_LEN) == 0) {
       const char* value = (i + 1 < argc) ? argv[i + 1] : NULL;
+      // printf("handler.c: assigning value: %s to argname %s\n", value, name);
       return arg_set_value(arg, value);
     }
   }
   return 1;
 }
 
-void arglist_parse(ArgList* arglist, char* argv[], int argc) {
+void arglist_parse(ArgList* arglist, const char* argv[], int argc) {
   while (arglist->next != NULL) {
     if (arglist_update_arg(arglist->arg, argv, argc) && arglist->required) {
       fprintf(stderr, "Error in setting required Argument: %s\n",

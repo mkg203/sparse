@@ -26,7 +26,7 @@ void print_args(ArgList*);
 
 int arglist_count(ArgList*);
 
-void arglist_parse(ArgList*, char*[], int);
+void arglist_parse(ArgList*, const char*[], int);
 
 /**
  * Casting:
